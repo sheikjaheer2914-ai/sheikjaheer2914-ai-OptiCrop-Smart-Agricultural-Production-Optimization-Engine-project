@@ -46,9 +46,10 @@ def predict():
             
         feature_vector = np.array([[N, P, K, temp, humid, ph, rain]])
         prediction_output = model.predict(feature_vector)
-        predicted_crop = str(prediction_output).capitalize()
         
-        # --- AUTOMATIC SYSTEM-WIDE SOIL HEALTH SCREENING ---
+        # --- CLEAN STRING EXTRACTION AND CAPITALIZATION ---
+        predicted_crop = str(prediction_output).strip("[]'\"").strip().capitalize()
+        
         auto_alerts = []
         if N < 40: auto_alerts.append("Critical Low Nitrogen level detected. High risk of nutrient deficiency.")
         if ph < 5.5: auto_alerts.append("Severe Acidic Soil condition found. Nutrient absorption may be blocked.")
@@ -62,17 +63,51 @@ def predict():
         }
         
         if scenario == '2':
-            target_crop = request.form.get('target_crop', '').capitalize()
+            target_crop = request.form.get('target_crop', '').strip().capitalize()
             result_data['target_crop'] = target_crop
+            
+            crop_baselines = {
+                'Rice': {'N': 80, 'P': 40, 'K': 40, 'ph': (5.5, 6.5), 'temp': (20, 27), 'rain': (150, 250)},
+                'Maize': {'N': 60, 'P': 50, 'K': 40, 'ph': (5.8, 7.0), 'temp': (18, 30), 'rain': (60, 110)},
+                'Pigeonpeas': {'N': 20, 'P': 40, 'K': 20, 'ph': (5.5, 7.5), 'temp': (22, 35), 'rain': (50, 90)},
+                'Chickpea': {'N': 30, 'P': 55, 'K': 35, 'ph': (6.0, 7.5), 'temp': (15, 25), 'rain': (40, 70)},
+                'Kidneybeans': {'N': 25, 'P': 35, 'K': 22, 'ph': (6.0, 6.8), 'temp': (15, 25), 'rain': (60, 95)},
+                'Apple': {'N': 20, 'P': 130, 'K': 140, 'ph': (5.5, 6.5), 'temp': (21, 24), 'rain': (100, 125)},
+                'Banana': {'N': 100, 'P': 80, 'K': 50, 'ph': (5.5, 6.5), 'temp': (25, 28), 'rain': (90, 115)}
+            }
+            
+            base = crop_baselines.get(target_crop, {'N': 50, 'P': 45, 'K': 35, 'ph': (6.0, 7.0), 'temp': (20, 28), 'rain': (80, 150)})
+            
+            adjustments = []
+            climate_clash = False
+            
+            if N < base['N']:
+                adjustments.append(f"Increase Nitrogen by adding urea or compost (~{int(base['N'] - N)} mg/kg required).")
+            if P < base['P']:
+                adjustments.append(f"Boost Phosphorus by applying bone meal or superphosphate (~{int(base['P'] - P)} mg/kg required).")
+            if K < base['K']:
+                adjustments.append(f"Raise Potassium levels using muriate of potash (~{int(base['K'] - K)} mg/kg required).")
+            if ph < base['ph'][0]:
+                adjustments.append(f"Soil is too acidic for {target_crop}. Mix agricultural lime into the topsoil to raise the pH level.")
+            elif ph > base['ph'][1]:
+                adjustments.append(f"Soil is too alkaline for {target_crop}. Treat field blocks with elemental sulfur to lower the pH scale.")
+                
+            if not (base['temp'][0] <= temp <= base['temp'][1]):
+                climate_clash = True
+            if not (base['rain'][0] <= rain <= base['rain'][1]):
+                climate_clash = True
+                
+            result_data['adjustments'] = adjustments
+            result_data['climate_clash'] = climate_clash
+            
             if target_crop == predicted_crop:
-                result_data['suitability'] = "Optimal Compatibility"
-                result_data['suitability_desc'] = "Current soil and climate match this crop perfectly for maximum yield potential."
+                result_data['status'] = "Optimal Compatibility Match"
+            elif not climate_clash and adjustments:
+                result_data['status'] = "Conditional Suitability Matrix (Modifications Required)"
             else:
-                result_data['suitability'] = "Sub-Optimal Matrix Detected"
-                result_data['suitability_desc'] = f"The environment is better tailored for '{predicted_crop}'. Cultivating '{target_crop}' may cause low yields."
+                result_data['status'] = "Unachievable Macroclimate Boundary Conflict"
                 
         elif scenario == '3':
-            # Scenario 3 acts as the master aggregation panel for researchers
             policies = []
             if N < 40: policies.append("Initiate immediate regional N-fertilizer subsidies.")
             if ph < 5.5: policies.append("Deploy administrative lime distribution programs to stabilize pH levels.")
