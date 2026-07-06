@@ -46,8 +46,6 @@ def predict():
             
         feature_vector = np.array([[N, P, K, temp, humid, ph, rain]])
         prediction_output = model.predict(feature_vector)
-        
-        # --- CLEAN STRING EXTRACTION AND CAPITALIZATION ---
         predicted_crop = str(prediction_output).strip("[]'\"").strip().capitalize()
         
         auto_alerts = []
@@ -77,25 +75,17 @@ def predict():
             }
             
             base = crop_baselines.get(target_crop, {'N': 50, 'P': 45, 'K': 35, 'ph': (6.0, 7.0), 'temp': (20, 28), 'rain': (80, 150)})
-            
             adjustments = []
             climate_clash = False
             
-            if N < base['N']:
-                adjustments.append(f"Increase Nitrogen by adding urea or compost (~{int(base['N'] - N)} mg/kg required).")
-            if P < base['P']:
-                adjustments.append(f"Boost Phosphorus by applying bone meal or superphosphate (~{int(base['P'] - P)} mg/kg required).")
-            if K < base['K']:
-                adjustments.append(f"Raise Potassium levels using muriate of potash (~{int(base['K'] - K)} mg/kg required).")
-            if ph < base['ph'][0]:
-                adjustments.append(f"Soil is too acidic for {target_crop}. Mix agricultural lime into the topsoil to raise the pH level.")
-            elif ph > base['ph'][1]:
-                adjustments.append(f"Soil is too alkaline for {target_crop}. Treat field blocks with elemental sulfur to lower the pH scale.")
+            if N < base['N']: adjustments.append(f"Increase Nitrogen by adding urea or compost (~{int(base['N'] - N)} mg/kg required).")
+            if P < base['P']: adjustments.append(f"Boost Phosphorus by applying bone meal (~{int(base['P'] - P)} mg/kg required).")
+            if K < base['K']: adjustments.append(f"Raise Potassium levels using muriate of potash (~{int(base['K'] - K)} mg/kg required).")
+            if ph < base['ph'][0]: adjustments.append(f"Soil is too acidic. Add agricultural lime to raise the pH level.")
+            elif ph > base['ph'][1]: adjustments.append(f"Soil is too alkaline. Treat with elemental sulfur to lower the pH scale.")
                 
-            if not (base['temp'][0] <= temp <= base['temp'][1]):
-                climate_clash = True
-            if not (base['rain'][0] <= rain <= base['rain'][1]):
-                climate_clash = True
+            if not (base['temp'][0] <= temp <= base['temp'][1]): climate_clash = True
+            if not (base['rain'][0] <= rain <= base['rain'][1]): climate_clash = True
                 
             result_data['adjustments'] = adjustments
             result_data['climate_clash'] = climate_clash
@@ -123,4 +113,4 @@ def predict():
         return render_template('index.html', error="An internal system error occurred.")
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
