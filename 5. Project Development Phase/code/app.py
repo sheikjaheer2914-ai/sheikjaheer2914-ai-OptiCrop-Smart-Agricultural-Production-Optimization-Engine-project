@@ -1,4 +1,5 @@
-import os, pickle
+import os
+import pickle
 import numpy as np
 from flask import Flask, render_template, request
 
@@ -28,10 +29,8 @@ def predict():
         rain = float(request.form.get('rainfall', 0))
         
         feature_vector = np.array([[N, P, K, temp, humid, ph, rain]])
-        raw_prediction = model.predict(feature_vector)
-        
-        # --- ABSOLUTE FIX: FORCE FULL STRIPPING OF LIST BRACKETS AND QUOTES ---
-        predicted_crop = str(raw_prediction).replace('[', '').replace(']', '').replace("'", "").replace('"', '').strip().capitalize()
+        raw_pred = model.predict(feature_vector)
+        predicted_crop = str(raw_pred).replace('[', '').replace(']', '').replace("'", "").replace('"', '').strip().capitalize()
         
         result_data = {
             'scenario': scenario,
@@ -42,12 +41,56 @@ def predict():
         if scenario == '2':
             target_crop = request.form.get('target_crop', '').strip().capitalize()
             result_data['target_crop'] = target_crop
+            
+            # Universal Indian Agronomic Parameter Mapping Matrix for All 22 Crops
+            crop_baselines = {
+                'Rice': {'N': 80, 'P': 40, 'K': 40, 'ph': (5.5, 6.5), 'temp': (20, 27), 'rain': (150, 250)},
+                'Maize': {'N': 60, 'P': 50, 'K': 40, 'ph': (5.8, 7.0), 'temp': (18, 30), 'rain': (60, 110)},
+                'Pigeonpeas': {'N': 20, 'P': 40, 'K': 20, 'ph': (5.5, 7.5), 'temp': (22, 35), 'rain': (50, 90)},
+                'Chickpea': {'N': 30, 'P': 55, 'K': 35, 'ph': (6.0, 7.5), 'temp': (15, 25), 'rain': (40, 70)},
+                'Kidneybeans': {'N': 25, 'P': 35, 'K': 22, 'ph': (6.0, 6.8), 'temp': (15, 25), 'rain': (60, 95)},
+                'Apple': {'N': 20, 'P': 130, 'K': 140, 'ph': (5.5, 6.5), 'temp': (21, 24), 'rain': (100, 125)},
+                'Banana': {'N': 100, 'P': 80, 'K': 50, 'ph': (5.5, 6.5), 'temp': (25, 28), 'rain': (90, 115)},
+                'Watermelon': {'N': 40, 'P': 25, 'K': 50, 'ph': (5.5, 6.8), 'temp': (22, 32), 'rain': (40, 60)},
+                'Orange': {'N': 20, 'P': 15, 'K': 10, 'ph': (5.5, 6.5), 'temp': (15, 32), 'rain': (100, 150)},
+                'Papaya': {'N': 50, 'P': 50, 'K': 50, 'ph': (6.0, 6.5), 'temp': (22, 30), 'rain': (150, 200)},
+                'Coconut': {'N': 20, 'P': 20, 'K': 30, 'ph': (5.0, 8.0), 'temp': (25, 30), 'rain': (100, 220)},
+                'Cotton': {'N': 120, 'P': 45, 'K': 20, 'ph': (5.8, 8.0), 'temp': (22, 32), 'rain': (60, 100)},
+                'Jute': {'N': 80, 'P': 40, 'K': 40, 'ph': (6.0, 7.5), 'temp': (24, 35), 'rain': (150, 200)},
+                'Coffee': {'N': 100, 'P': 30, 'K': 30, 'ph': (6.0, 6.5), 'temp': (15, 26), 'rain': (140, 200)},
+                'Grapes': {'N': 30, 'P': 130, 'K': 140, 'ph': (5.5, 7.0), 'temp': (15, 40), 'rain': (65, 125)},
+                'Mango': {'N': 30, 'P': 30, 'K': 35, 'ph': (5.5, 7.0), 'temp': (27, 35), 'rain': (90, 100)},
+                'Muskmelon': {'N': 100, 'P': 20, 'K': 50, 'ph': (6.0, 6.7), 'temp': (27, 30), 'rain': (20, 30)},
+                'Pomegranate': {'N': 40, 'P': 20, 'K': 40, 'ph': (5.5, 7.0), 'temp': (25, 35), 'rain': (50, 100)},
+                'Lentil': {'N': 20, 'P': 60, 'K': 20, 'ph': (6.0, 7.0), 'temp': (18, 30), 'rain': (45, 85)},
+                'Blackgram': {'N': 40, 'P': 60, 'K': 20, 'ph': (6.5, 7.5), 'temp': (25, 35), 'rain': (60, 75)},
+                'Mungbean': {'N': 20, 'P': 45, 'K': 20, 'ph': (6.2, 7.2), 'temp': (27, 35), 'rain': (40, 60)},
+                'Mothbeans': {'N': 20, 'P': 45, 'K': 20, 'ph': (6.5, 7.5), 'temp': (25, 35), 'rain': (30, 60)}
+            }
+            
+            base = crop_baselines.get(target_crop, {'N': 50, 'P': 45, 'K': 35, 'ph': (6.0, 7.0), 'temp': (20, 28), 'rain': (80, 150)})
+            adjustments = []
+            climate_clash = False
+            
+            if N < base['N']: adjustments.append(f"Increase soil Nitrogen content by adding specialized urea or compost boosters (~{int(base['N'] - N)} mg/kg missing).")
+            if P < base['P']: adjustments.append(f"Boost soil Phosphorus by adding rock phosphate or bone meal compounds (~{int(base['P'] - P)} mg/kg missing).")
+            if K < base['K']: adjustments.append(f"Raise soil Potassium profiles using muriate of potash supplements (~{int(base['K'] - K)} mg/kg missing).")
+            if ph < base['ph'][0]: adjustments.append(f"Soil acidity level is critical for {target_crop}. Apply agricultural lime powder treatments immediately.")
+            elif ph > base['ph'][1]: adjustments.append(f"Soil alkalinity level is over high for {target_crop}. Blend organic peat moss or elemental sulfur mix.")
+                
+            if not (base['temp'][0] <= temp <= base['temp'][1]): climate_clash = True
+            if not (base['rain'][0] <= rain <= base['rain'][1]): climate_clash = True
+                
+            result_data['adjustments'] = adjustments
+            result_data['climate_clash'] = climate_clash
+            
             if target_crop == predicted_crop:
                 result_data['status'] = "Optimal Compatibility Match"
-                result_data['suitability_desc'] = f"The soil and climate properties align flawlessly for maximum production output yields of {target_crop}."
+            elif not climate_clash and adjustments:
+                result_data['status'] = "Conditional Suitability Matrix (Soil Modifications Required)"
             else:
-                result_data['status'] = "Sub-Optimal Metric Conflict Detected"
-                result_data['suitability_desc'] = f"The environment naturally favors '{predicted_crop}'. Cultivating '{target_crop}' presents immediate resource allocation risk."
+                result_data['status'] = "Unachievable Macroclimate Boundary Conflict"
+                
         elif scenario == '3':
             policies = []
             if N < 40: policies.append("Low Nitrogen recorded: Propose active N-fertilizer resource management subsidies.")
