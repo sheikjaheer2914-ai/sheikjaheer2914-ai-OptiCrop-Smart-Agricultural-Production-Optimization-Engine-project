@@ -4,17 +4,17 @@ OptiCrop is an AI-powered agricultural recommendation system designed to optimiz
 
 ---
 
-## 🚀 QUICK START / ACTIVATION CODE
+##QUICK START / ACTIVATION CODE
 
 Whenever your Codespace restarts or deactivates, copy and paste this **single line** into your terminal to instantly launch the application:
-
-```bash
+bash
+```
 cd "5. Project Development Phase/code" && python app.py
 ```
 
 ---
 
-## 🏗️ Project Architecture Layout
+##Project Architecture Layout
 
 The application utilizes a single-folder code architecture to eliminate directory fragmentation:
 
