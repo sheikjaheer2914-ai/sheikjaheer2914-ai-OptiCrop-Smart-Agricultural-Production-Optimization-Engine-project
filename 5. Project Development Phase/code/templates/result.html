@@ -2,77 +2,74 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Inference Insights - OptiCrop</title>
+    <title>OptiCrop Engine Dashboard</title>
     <style>
-        :root { 
-            --bg: #0e1117; 
-            --surface: #161b22; 
-            --border: #30363d; 
-            --text: #c9d1d9; 
-            --text-heading: #ffffff; 
-            --success-border: #238636; 
-            --info-border: #388bfd; 
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text); display: flex; min-height: 100vh; }
-        .sidebar { width: 280px; background-color: var(--surface); border-right: 1px solid var(--border); padding: 2rem 1.5rem; flex-shrink: 0; }
-        .main-content { flex-grow: 1; padding: 2.5rem 3.5rem; max-width: 900px; }
-        .result-card { background-color: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 2.5rem; margin-top: 1rem; }
-        .highlight-box { border-left: 4px solid var(--border); padding-left: 1.25rem; margin-bottom: 1.75rem; }
-        .highlight-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #8b949e; margin-bottom: 0.35rem; }
-        .highlight-value { font-size: 1.5rem; font-weight: 600; color: var(--text-heading); }
-        .strategy-card { background-color: #1f242c; border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem; text-align: left; }
-        .policy-item { background-color: var(--surface); border: 1px solid var(--border); padding: 1rem 1.25rem; border-radius: 6px; margin-bottom: 0.75rem; font-weight: 500; }
-        .btn-back { display: inline-block; margin-top: 2rem; color: #58a6ff; text-decoration: none; font-size: 0.9rem; border: 1px solid var(--border); padding: 0.5rem 1.25rem; border-radius: 6px; }
+        body { background-color: #0f1319; color: #e2e8f0; font-family: system-ui, sans-serif; margin: 0; padding: 40px; display: flex; }
+        .sidebar { width: 240px; font-weight: bold; border-right: 1px solid #1e293b; padding-right: 20px; }
+        .sidebar h2 { color: #f8fafc; margin: 0; font-size: 20px; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+        .sidebar p { color: #64748b; font-size: 12px; margin: 12px 0 0 0; }
+        .main-content { flex: 1; margin-left: 40px; max-width: 900px; }
+        .project-banner { font-size: 11px; text-transform: uppercase; color: #4ade80; font-weight: 700; letter-spacing: 1.5px; margin-bottom: 20px; background-color: #14231a; display: inline-block; padding: 6px 12px; border-radius: 4px; border: 1px solid #1b3a24; }
+        .section-card { background-color: #151b26; border: 1px solid #1e293b; border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+        .section-title { font-size: 14px; font-weight: 600; color: #94a3b8; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 8px; text-transform: uppercase; }
+        .output-box { background-color: #0f1319; border-left: 4px solid #16a34a; padding: 16px; margin: 10px 0; border-radius: 4px; }
+        .crop-name { font-size: 32px; font-weight: bold; color: #eab308; margin: 5px 0; }
+        .badge { display: inline-block; padding: 6px 14px; border-radius: 4px; font-weight: bold; font-size: 13px; background-color: #eab308; color: #0f1319; margin-bottom: 15px; text-transform: uppercase; }
+        ul { padding-left: 20px; margin: 12px 0; }
+        li { color: #cbd5e1; margin-bottom: 16px; font-size: 14px; line-height: 1.6; list-style-type: square; }
+        .btn-back { background-color: #1e293b; color: #cbd5e1; text-decoration: none; padding: 12px 24px; font-weight: bold; border-radius: 6px; cursor: pointer; float: right; font-size: 14px; border: 1px solid #334155; display: inline-block; }
+        .btn-back:hover { background-color: #334155; color: white; }
+        .text-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-top: 15px; }
     </style>
 </head>
 <body>
-    <aside class="sidebar"><h2>🌾 OptiCrop</h2></aside>
-    <main class="main-content">
-        <div class="result-card">
-            {% if result.scenario == '1' %}
-            <div class="highlight-box" style="border-color: var(--success-border);">
-                <div class="highlight-label">1. Mechanized Optimal Crop Recommendation</div>
-                <div class="highlight-value" style="color: #56d364;">{{ result.predicted_crop }}</div>
+    <div class="sidebar">
+        <h2>🌾 OptiCrop</h2>
+        <p>Engine Dashboard</p>
+    </div>
+    <div class="main-content">
+        <div class="project-banner">OptiCrop: Smart Agricultural Production Optimization Engine</div>
+        <div class="section-card">
+            <div class="section-title">Execution Inference Result</div>
+            <div class="output-box">
+                <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Optimized Crop Prediction Allocation</div>
+                <div class="crop-name">{{ result.predicted_crop }}</div>
             </div>
-            {% elif result.scenario == '2' %}
-            <div class="highlight-box" style="border-color: var(--success-border);">
-                <div class="highlight-label">1. Best Recommended Crop for Readings</div>
-                <div class="highlight-value" style="color: #56d364;">{{ result.predicted_crop }}</div>
-            </div>
-            <div class="highlight-box" style="border-color: var(--info-border);">
-                <div class="highlight-label">2. User Selected Desired Crop</div>
-                <div class="highlight-value" style="color: #58a6ff;">{{ result.target_crop }}</div>
-            </div>
-            <div class="highlight-box" style="border-color: #bb8009;">
-                <div class="highlight-label">3. Feasibility and Optimization Strategy Plan</div>
-                <div class="strategy-card">
-                    {% if result.predicted_crop == result.target_crop %}
-                        <p style="color: #56d364;">✓ The soil metrics match your desired cultivation targets perfectly.</p>
-                    {% elif result.climate_clash %}
-                        <p style="color: #ff7b72;">❌ UNCONVENTIONAL CLIMATE GAP: Weather constraints are fundamentally incompatible for growing {{ result.target_crop }}. Stick to the system match: <b>{{ result.predicted_crop }}</b>.</p>
-                    {% else %}
-                        <p style="color: #e3b341; margin-bottom: 0.5rem;">🛠️ ACHIEVABLE SOIL BALANCING REMEDIES:</p>
-                        <ul style="padding-left: 1.25rem; font-size: 0.9rem;">
-                            {% for adjustment in result.adjustments %}
-                            <li>{{ adjustment }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-            </div>
-            {% elif result.scenario == '3' %}
-            <div class="highlight-box" style="border-color: var(--success-border);">
-                <div class="highlight-label">Calculated Highest Yield Production Target</div>
-                <div class="highlight-value">{{ result.predicted_crop }}</div>
-            </div>
-            <div style="font-weight:700; text-transform:uppercase; font-size:0.75rem; color:#8b949e; margin-bottom:0.75rem;">📋 Action Guidelines:</div>
-            {% for policy in result.policy_recommendations %}
-            <div class="policy-item">📋 {{ policy }}</div>
-            {% endfor %}
-            {% endif %}
-            <a href="/" class="btn-back">Return to Active Portal</a>
         </div>
-    </main>
+        {% if result.scenario == '1' or result.scenario == '2' %}
+        <div class="section-card">
+            <div class="section-title">Scenario 2: Agronomic Suitability Evaluation [{{ result.target_crop }}]</div>
+            <div class="badge">Result: {{ result.status }}</div>
+            {% if result.reasons %}
+            <div class="text-label">Why the crop choice is restricted:</div>
+            <ul>
+                {% for reason in result.reasons %}
+                <li>{{ reason }}</li>
+                {% endfor %}
+            </ul>
+            <div class="text-label" style="color: #4ade80;">Recommended Precautions & Corrections:</div>
+            <ul>
+                {% for pre in result.precautions %}
+                <li>{{ pre }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p style="color: #22c55e; font-size: 14px;">All metrics perfectly fulfill required crop baselines.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% if result.scenario == '3' %}
+        <div class="section-card">
+            <div class="section-title">Scenario 3: Regional Policy and Strategic Analysis [{{ result.target_crop }}]</div>
+            <div class="text-label">Macro Research Policy Framework Action Directives</div>
+            <ul>
+                {% for policy in result.policy_recommendations %}
+                <li>{{ policy }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        <div style="width: 100%; display: flow-root;"><a href="/" class="btn-back">Return to Engine Dashboard</a></div>
+    </div>
 </body>
 </html>
